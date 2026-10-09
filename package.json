@@ -1,0 +1,32 @@
+{
+  "name": "@pipeworx/mcp-sdmx-structure",
+  "version": "0.1.0",
+  "description": "SDMX Structure MCP — dataflow dimensions and code lists for any SDMX 2.1",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "bin": {
+    "mcp-sdmx-structure": "bin/cli.js"
+  },
+  "keywords": ["mcp", "mcp-server", "model-context-protocol", "pipeworx", "sdmx-structure"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pipeworx-io/mcp-sdmx-structure.git"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "tsx": "^4.19.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "@cloudflare/workers-types": "^4.20260405.1"
+  },
+  "pipeworx": {
+    "sourceHash": "v1-80e08c5f0d651849ca91c067527c7aa7ca70174e84e649666ed1fc888ccae679",
+    "sourceCommit": "3d8d9f09e39ebb175a9e41fffd8601eeddcf10a4"
+  }
+}

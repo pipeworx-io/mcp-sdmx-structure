@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.pipeworx-io/sdmx-structure",
+  "title": "Sdmx Structure",
+  "description": "SDMX Structure MCP — dataflow dimensions and code lists for any SDMX 2.1",
+  "version": "0.1.0",
+  "websiteUrl": "https://pipeworx.io/packs/sdmx-structure",
+  "repository": {
+    "url": "https://github.com/pipeworx-io/mcp-sdmx-structure",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://gateway.pipeworx.io/sdmx-structure/mcp"
+    }
+  ]
+}
