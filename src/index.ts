@@ -949,7 +949,17 @@ const REGISTRIES: Record<string, RegistryConfig> = {
     id: 'oecd',
     name: 'OECD',
     base: 'https://sdmx.oecd.org/public/rest',
-    agency: 'OECD',
+    // "OECD" is NOT a maintaining agency that exists in this registry — every
+    // dataflow is published under a DIRECTORATE sub-agency (OECD.SDD.NAD,
+    // OECD.ELS.JAI, OECD.EDU.IMEP, ...; 52 distinct agencyIDs observed live,
+    // including ESTAT and IAEG-SDGs mirrored in). A bare "OECD" 404s with
+    // "No Results Found" on both the listing and single-dataflow paths —
+    // confirmed live 2026-10-09, fleet #2839 follow-up. "all" resolves BOTH
+    // shapes identically to the real sub-agency (verified side by side for
+    // DSD_NAMAIN1@DF_QNA_EXPENDITURE_GROWTH_OECD via OECD.SDD.NAD vs "all" —
+    // byte-identical dataflow entry back), so it is the default rather than
+    // guessing a directorate.
+    agency: 'all',
     format: 'json',
     accept: 'application/vnd.sdmx.structure+json',
     docs: 'https://data-explorer.oecd.org',
@@ -967,7 +977,13 @@ const REGISTRIES: Record<string, RegistryConfig> = {
     id: 'unsd',
     name: 'UN Statistics Division (data.un.org SDMX hub)',
     base: 'https://data.un.org/legacy/ws/rest',
-    agency: 'UNSD',
+    // "UNSD" alone 200s but returns only UNSD's OWN flows (1,414 bytes,
+    // ~4 dataflows) — the hub also mirrors ESTAT, IAEG-SDGs, UIS and World
+    // Bank dataflows under THEIR agency ids (confirmed live 2026-10-09: "all"
+    // returns 4,428 bytes, ~15 dataflows, and a non-UNSD flow like ESTAT's
+    // DF_SEEA_AEA resolves fine with agency "all" but 404s under "UNSD").
+    // Default to "all" so find_dataflow/dataflow_structure see the whole hub.
+    agency: 'all',
     format: 'json',
     accept: 'application/vnd.sdmx.structure+json',
     docs: 'https://data.un.org',
@@ -976,7 +992,14 @@ const REGISTRIES: Record<string, RegistryConfig> = {
     id: 'imf',
     name: 'IMF',
     base: 'https://api.imf.org/external/sdmx/2.1',
-    agency: 'IMF.STA',
+    // "IMF.STA" (Statistics Dept) 200s and used to look complete, but it is
+    // one of TEN IMF sub-agencies (IMF.STA/MCD/SPR/AFR/MCM/FAD/WHD/APD/RES
+    // plus the external ISORA) — confirmed live 2026-10-09: IMF.STA's own
+    // catalogue has 190 dataflows, "all" has 223, and the 33 missing include
+    // every regional economic outlook (APDREO, AFRREO, WHDREO...) and fiscal
+    // affairs dataflows. "all" resolves a single dataflow lookup identically
+    // to its real sub-agency too (APDREO via "all" vs IMF.APD: byte-identical).
+    agency: 'all',
     format: 'json',
     accept: 'application/json',
     docs: 'https://data.imf.org',
@@ -1174,10 +1197,24 @@ function clampNum(v: unknown, def: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
 }
 
-function notFoundResult(reg: RegistryConfig, kind: string, idArg: string, idVal: string, nf: NotFound) {
+/**
+ * Default suggestion: point at sdmx_find_dataflow, the tool that resolves a
+ * real id. NEVER pass this when the caller is already INSIDE
+ * sdmx_find_dataflow (its own catalogue 404 — pass a different `suggestion`
+ * there) — doing that told a caller to retry the exact call that just
+ * failed, in a loop, until fleet #2839's follow-up caught it live against
+ * OECD: `sdmx_find_dataflow({registry:"oecd", query:"unemployment"})` 404ed
+ * on agency "OECD" and the not_found message sent the caller back to
+ * `sdmx_find_dataflow({registry:"oecd", query:"..."})`.
+ */
+function findDataflowSuggestion(reg: RegistryConfig): string {
+  return `Call sdmx_find_dataflow({registry:"${reg.id}", query:"..."}) to find a real id.`;
+}
+
+function notFoundResult(reg: RegistryConfig, kind: string, idArg: string, idVal: string, nf: NotFound, suggestion?: string) {
   return {
     error: 'not_found',
-    message: `${reg.name} has no ${kind} "${idVal}" (HTTP ${nf.status}: ${nf.body.replace(/\s+/g, ' ').trim().slice(0, 200)}). Call sdmx_find_dataflow({registry:"${reg.id}", query:"..."}) to find a real id.`,
+    message: `${reg.name} has no ${kind} "${idVal}" (HTTP ${nf.status}: ${nf.body.replace(/\s+/g, ' ').trim().slice(0, 200)}). ${suggestion ?? findDataflowSuggestion(reg)}`,
     registry: reg.id,
     [idArg]: idVal,
   };
@@ -1605,7 +1642,18 @@ async function findDataflow(args: Record<string, unknown>) {
   );
   if (res.status === 404) {
     const body = await readBodyText(res).catch(() => '');
-    return notFoundResult(reg, 'dataflow catalogue', 'agency', agency, { notFound: true, status: 404, body });
+    // This IS sdmx_find_dataflow — the default "call sdmx_find_dataflow to
+    // find a real id" suggestion would point the caller straight back at
+    // the call that just failed. Suggest the escape hatches that actually
+    // differ: a different agency, or the registry's own docs.
+    return notFoundResult(
+      reg,
+      'dataflow catalogue',
+      'agency',
+      agency,
+      { notFound: true, status: 404, body },
+      `"${agency}" is not a maintaining agency ${reg.name} recognises. Try agency: "all" (the default for most registries here), or check ${reg.docs} for the real agency id.`,
+    );
   }
   if (!res.ok) {
     const body = await readBodyText(res).catch(() => '');

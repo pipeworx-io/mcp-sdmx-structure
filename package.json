@@ -1,7 +1,7 @@
 {
   "name": "@pipeworx/mcp-sdmx-structure",
-  "version": "0.1.0",
-  "description": "SDMX Structure MCP — dataflow dimensions and code lists for any SDMX 2.1",
+  "version": "0.1.1",
+  "description": "SDMX Structure MCP — dataflow dimensions and code lists for any SDMX 2.1 registry: Eurostat, OECD, the ECB, the UN Statistics Division (via the data.un.org SDMX hub), the IMF, and the Bank for International Settlements.",
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -26,7 +26,7 @@
     "@cloudflare/workers-types": "^4.20260405.1"
   },
   "pipeworx": {
-    "sourceHash": "v1-80e08c5f0d651849ca91c067527c7aa7ca70174e84e649666ed1fc888ccae679",
-    "sourceCommit": "3d8d9f09e39ebb175a9e41fffd8601eeddcf10a4"
+    "sourceHash": "v1-cff9732137b211a794f8354d403bf57c41f1f681c9f7881b4075066a778b5f9c",
+    "sourceCommit": "3723e46c6d115bd4a1fd2175e6bf758555e7cb50"
   }
 }

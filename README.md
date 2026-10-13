@@ -8,7 +8,7 @@ Statistics. This is the STRUCTURE half of SDMX, distinct from pulling
 observations — use it to decode a dimension's codes or to learn the key
 order a registry's own get_data tool needs.
 
-Part of [Pipeworx](https://pipeworx.io) — an MCP gateway connecting AI agents to 1745+ live data sources. This is an independent, unofficial integration — not affiliated with, endorsed by, or published by the upstream provider.
+Part of [Pipeworx](https://pipeworx.io) — an MCP gateway connecting AI agents to 1784+ live data sources. This is an independent, unofficial integration — not affiliated with, endorsed by, or published by the upstream provider.
 
 ## Tools
 
@@ -34,17 +34,43 @@ Part of [Pipeworx](https://pipeworx.io) — an MCP gateway connecting AI agents 
 | `registry` | Source | Structure format | Default agency |
 |---|---|---|---|
 | `eurostat` | Eurostat | XML only (confirmed live — every JSON Accept/format combination 406s) | `ESTAT` |
-| `oecd` | OECD | JSON | `OECD` |
+| `oecd` | OECD | JSON | `all` |
 | `ecb` | European Central Bank | XML only | `ECB` |
-| `unsd` | UN Statistics Division (data.un.org SDMX hub) | JSON | `UNSD` |
-| `imf` | IMF | JSON | `IMF.STA` |
+| `unsd` | UN Statistics Division (data.un.org SDMX hub) | JSON | `all` |
+| `imf` | IMF | JSON | `all` |
 | `bis` | Bank for International Settlements | JSON | `BIS` |
 | `ilo` | ILOSTAT | JSON | `ILO` |
 | `abs` | Australian Bureau of Statistics | JSON | `ABS` |
 
-Pass `agency` to override the default when a dataflow is published by a
-different maintaining agency than the registry's usual one (common on OECD,
-e.g. `OECD.SDD.NAD`).
+**OECD, IMF and UNSD default to agency `all`, not a single agency — this is
+load-bearing, not a placeholder.** All three registries split their catalogue
+across many maintaining sub-agencies and there is no single agency id that
+covers it:
+
+- **OECD**: there is no agency literally called `"OECD"` — every dataflow is
+  published under a directorate (`OECD.SDD.NAD`, `OECD.ELS.JAI`,
+  `OECD.EDU.IMEP`, ...; 52 distinct agency ids observed live, some mirroring
+  in ESTAT and IAEG-SDGs flows too). Querying agency `"OECD"` 404s with
+  `"No Results Found"` on both the catalogue listing and a single-dataflow
+  lookup — this is the live defect fleet #2839's follow-up caught
+  (`sdmx_find_dataflow({registry:"oecd", query:"unemployment"})` 404ing).
+- **IMF**: ten sub-agencies (`IMF.STA`, `IMF.MCD`, `IMF.SPR`, `IMF.AFR`,
+  `IMF.MCM`, `IMF.FAD`, `IMF.WHD`, `IMF.APD`, `IMF.RES`, plus the external
+  `ISORA`). `IMF.STA` alone 200s — which is why this looked fine at first —
+  but covers only 190 of 223 dataflows; the other 33 are every regional
+  economic outlook (`APDREO`, `AFRREO`, `WHDREO`, ...) and the fiscal affairs
+  dataflows.
+- **UNSD**: the hub mirrors ESTAT, IAEG-SDGs, UIS and World Bank dataflows
+  under THEIR agency ids alongside UNSD's own ~4. Querying agency `"UNSD"`
+  200s but returns only UNSD's own flows (1.4KB observed) where `"all"`
+  returns the whole hub (4.4KB, ~15 dataflows).
+
+`"all"` resolves a SINGLE dataflow lookup identically to the dataflow's real
+sub-agency for all three (verified side by side, byte-identical response, for
+an OECD.SDD.NAD flow, an IMF.APD flow and an ESTAT-owned UNSD-hub flow) — so
+there is no coverage cost to defaulting to it. Pass `agency` only to narrow a
+search to one sub-agency, or to match a different registry's single-agency
+default (Eurostat/ECB/BIS/ILOSTAT/ABS, each already its own one agency).
 
 **Not included: Stats NZ.** Its SDMX endpoint requires a platform API key
 (`Ocp-Apim-Subscription-Key`, injected by the gateway from
@@ -174,7 +200,7 @@ directly, instead of just this one's:
 }
 ```
 
-Both URLs reach the same gateway and the same 1745+ data sources. The
+Both URLs reach the same gateway and the same 1784+ data sources. The
 only difference is which pack's tools are listed **directly**; `ask_pipeworx`
 reaches all of them from either one.
 
