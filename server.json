@@ -3,7 +3,7 @@
   "name": "io.github.pipeworx-io/sdmx-structure",
   "title": "Sdmx Structure",
   "description": "SDMX Structure MCP — dataflow dimensions and code lists for any SDMX 2.1 registry: Eurostat, OECD…",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "websiteUrl": "https://pipeworx.io/packs/sdmx-structure",
   "repository": {
     "url": "https://github.com/pipeworx-io/mcp-sdmx-structure",

@@ -1,12 +1,20 @@
 {
   "name": "@pipeworx/mcp-sdmx-structure",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "SDMX Structure MCP — dataflow dimensions and code lists for any SDMX 2.1 registry: Eurostat, OECD, the ECB, the UN Statistics Division (via the data.un.org SDMX hub), the IMF, and the Bank for International Settlements.",
   "type": "module",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./tools.json": "./tools.json",
+    "./package.json": "./package.json"
+  },
   "bin": {
     "mcp-sdmx-structure": "bin/cli.js"
+  },
+  "files": ["bin/", "lib/", "tools.json", "server.json"],
+  "engines": {
+    "node": ">=18"
   },
   "keywords": ["mcp", "mcp-server", "model-context-protocol", "pipeworx", "sdmx-structure"],
   "license": "MIT",
@@ -14,19 +22,12 @@
     "type": "git",
     "url": "git+https://github.com/pipeworx-io/mcp-sdmx-structure.git"
   },
-  "scripts": {
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
-    "tsx": "^4.19.0"
-  },
-  "devDependencies": {
-    "typescript": "^5.9.3",
-    "@cloudflare/workers-types": "^4.20260405.1"
-  },
+  "mcpName": "io.github.pipeworx-io/sdmx-structure",
   "pipeworx": {
-    "sourceHash": "v1-cff9732137b211a794f8354d403bf57c41f1f681c9f7881b4075066a778b5f9c",
-    "sourceCommit": "3723e46c6d115bd4a1fd2175e6bf758555e7cb50"
+    "mode": "gateway",
+    "slug": "sdmx-structure",
+    "gatewaySlug": "sdmx-structure",
+    "sourceHash": "v1-baa34985358f8d43a230a42ee52a559e937c0384633b820bd18fc0873f9a33f8",
+    "sourceCommit": "6bae4cfa7b6a73bbe014dc8820a19c80c842b21e"
   }
 }
